@@ -16,7 +16,16 @@ license = {text = "MIT"}
 distribution = true
 
 [tool.pdm.dev-dependencies]
-dev = []
+dev = [
+    "pytest>=8.3.3",
+    "coverage>=7.6.1",
+]
 [build-system]
 requires = ["pdm-backend"]
 build-backend = "pdm.backend"
+
+[tool.pdm.scripts]
+test = "coverage run -m pytest"
+coverage-report = "coverage report --omit=tests/*"
+coverage-html = "coverage html --omit=tests/*"
+coverage = {composite = ["test", "coverage-html", "coverage-report"]}
