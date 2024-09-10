@@ -12,6 +12,13 @@ import warnings
 from .state import AbstractState, Win, Tie, Undecided, Decided
 from .agents import Agent
 
+class MockRng:
+    def randint(self, a, b):
+        return 0
+    
+    def choice(self, collection):
+        return collection[0]
+
 def default_score_function(node_wins, node_simulations, parent_simulations, exploration_parameter=math.sqrt(2)) -> float:
     """Score the value of the node for a player.
     
@@ -62,9 +69,7 @@ class MCTSAgent(Agent):
             self.curr_node.state = state
 
         # Select, expand, and choose the best move
-        expansion_node = self.curr_node.select()
-        expansion_node.expand()
-        return self.curr_node.best_move
+        return self.curr_node.playout()
 
     def observe_move(self, player: Any, move: Any, new_state: AbstractState) -> None:
         """Observe a move made by another player, updating the state tree.
@@ -76,7 +81,7 @@ class MCTSAgent(Agent):
         """
         # If the game has just started, set the root
         if self.curr_node is None:
-            self.root = Node(new_state)
+            self.root = Node(new_state, rng=MockRng())
             self.curr_node = self.root
             return
         else:
@@ -85,7 +90,7 @@ class MCTSAgent(Agent):
 
         if next_node is None:
             # This is a novel game state unseen before
-            next_node = Node(new_state, Counter(), parent=self.curr_node)
+            next_node = Node(new_state, Counter(), parent=self.curr_node, rng=self.root.rng)
         elif next_node.state != new_state:
             # We've seen this move before, but it led to a state not in the
             # tree. Theoretically, this shouldn't happen.
@@ -101,7 +106,7 @@ class MCTSAgent(Agent):
         
 
 class Node:
-    def __init__(self, state: AbstractState, scores=Counter(), children: Dict[Hashable, Node] = dict(), rng=None, score_fn=default_score_function, parent=None):
+    def __init__(self, state: AbstractState, scores=None, children: Dict[Hashable, Node] = dict(), rng=None, score_fn=default_score_function, parent=None):
         """Create a node for a Monte Carlo search tree.
         Args:
             state:
@@ -117,6 +122,9 @@ class Node:
             parent:
                 The parent node of this one.
         """
+        if scores is None:
+            scores = Counter()
+
         # Initialize rng if none is provided.
         if rng is None:
             self.rng = Random()
@@ -128,6 +136,66 @@ class Node:
         self.scores = scores
         self.score_fn = score_fn
         self.parent = parent
+        
+    def playout(self, n_moves=10):
+        """Temporary function until full functionality is achieved."""
+
+        # Select node to explore
+        chain = [self]
+        while len(chain[-1].children) != 0:
+            if len(chain) > 1:
+                parent_simulations = max(chain[-2].scores.total(), 1)
+            else:
+                parent_simulations = 1
+            
+            chain.append(
+                max(chain[-1].children.values(), key=lambda s: s.score(parent_simulations))
+            )
+
+        # Expand multiple moves from exploration node
+        expansion_moves = chain[-1].state.possible_moves()
+        for i in range(min(n_moves, len(expansion_moves))):
+            expansion_chain = [chain[-1]]
+            move = expansion_moves.pop(self.rng.randint(0, len(expansion_moves)-1))
+
+            # Simulate playout with given move
+            while expansion_chain[-1].state.outcome.is_undecided:
+                if move is None:
+                    move = self.rng.choice(expansion_chain[-1].state.possible_moves())
+
+                node = Node(expansion_chain[-1].state.next_move(
+                        expansion_chain[-1].state.current_player,
+                        move,
+                    ),
+                    rng=expansion_chain[-1].rng)
+                expansion_chain[-1].children[move] = node
+                expansion_chain.append(node)
+                
+                move = None
+                
+            
+            # Check the outcome
+            if expansion_chain[-1].state.outcome.is_tie:
+                # outcome is a tie
+                # TODO: partial points for ties?
+                # Need to increment something by one to account for simulation counts
+                expansion_chain[-1].scores[None] += 1
+            else:
+                # outcome is a win
+                winner = expansion_chain[-1].state.outcome.winner
+                expansion_chain[-1].scores[winner] +=1
+            
+            # Backpropagate wins back to expansion node
+            for i, node in enumerate(expansion_chain[-2::-1]):
+                node.scores += expansion_chain[i+1].scores
+                
+        # Backpropagate wins from expanded node to self node
+        for i, node in enumerate(chain[-2::-1]):
+            node.scores += expansion_chain[i+1].scores
+            
+        # Return best move in current state
+        return max(self.children.keys(), key=lambda k: self.children[k].scores[self.state.current_player])
+
 
     def select(self):
         """Select a node to expand in exploration.
@@ -164,6 +232,9 @@ class Node:
 
         node_wins = self.scores[player]
         node_simulations = self.scores.total()
+        if node_simulations == 0:
+            # Avoid divide by zero errors
+            node_simulations = 1
         return self.score_fn(node_wins, node_simulations, parent_simulations)
 
     def expand(self):
