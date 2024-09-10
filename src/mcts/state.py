@@ -13,25 +13,21 @@ class Outcome(metaclass=ABCMeta):
     """
 
     @property
-    @abstractmethod
     def is_decided(self):
         """Returns True IFF the game is decided, i.e. there is a winner or a tie."""
         return False
     
     @property
-    @abstractmethod
     def is_undecided(self):
         """Returns True IFF the game is undecided, i.e. there is no winner or a tie yet."""
         return False
 
     @property
-    @abstractmethod
     def is_tie(self):
         """Returns True IFF the game ended in a tie."""
         return False
     
     @property
-    @abstractmethod
     def is_win(self):
         """Returns True IFF the game ended with a winner."""
         return False

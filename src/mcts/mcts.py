@@ -93,6 +93,11 @@ class MCTSAgent(Agent):
             warnings.warn("Next state does not match expected next state in MCT. Continuing with game-provided next state, but children may differ.")
         
         self.curr_node = next_node
+
+    def see_state(self, state: AbstractState) -> None:
+        # TODO complete
+        pass
+
         
 
 class Node:
