@@ -1,4 +1,6 @@
 from mcts.ttt import TicTacToeState
+from  mcts.game import Game
+from mcts.agents import FirstChoiceAgent
 import pytest
 
 def test_possible_moves():
@@ -70,3 +72,7 @@ def test_str():
 def test_repr():
     # TODO flesh out
     assert repr(TicTacToeState()) == '___\n___\n___'
+
+def test_first_mover_game():
+    g = Game(TicTacToeState(), {'X': FirstChoiceAgent(), 'O': FirstChoiceAgent()})
+    assert g.play().outcome.winner == 'X'

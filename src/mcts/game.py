@@ -33,6 +33,9 @@ class Game:
         
         Agents take turns making moves, and game notifies the other agents of
         the moves made.
+        
+        Returns:
+            The final game state, guaranteed to be decided.
         """
 
         # Play until there is an outcome
@@ -67,4 +70,6 @@ class Game:
             print("The game ends in a tie.")
         else:
             print(f"The winner is {self.state.outcome.winner}")
+
+        return self.state
                 
