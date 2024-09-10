@@ -1,5 +1,6 @@
 from abc import ABCMeta, abstractmethod
 from typing import Any
+from random import Random
 
 from .state import AbstractState
 
@@ -94,3 +95,33 @@ class ConsoleAgent(Agent):
             state: The current game state.
         """
         print(state)
+        
+class RandomAgent(Agent):
+    """An agent that chooses moves randomly."""
+    
+    def __init__(self, rng=None):
+        if rng is None:
+            rng = Random()
+
+        self.rng = rng
+
+    def make_move(self, state: AbstractState) -> Any:
+        return self.rng.choice(state.possible_moves())
+
+    def observe_move(self, player: Any, move: Any, new_state: AbstractState) -> None:
+        pass
+
+    def see_state(self, state: AbstractState) -> None:
+        pass
+
+class FirstChoiceAgent(Agent):
+    """An agent that always chooses the first move."""
+
+    def make_move(self, state: AbstractState) -> Any:
+        return state.possible_moves()[0]
+
+    def observe_move(self, player: Any, move: Any, new_state: AbstractState) -> None:
+        pass
+
+    def see_state(self, state: AbstractState) -> None:
+        pass
