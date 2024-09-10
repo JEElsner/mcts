@@ -103,7 +103,7 @@ class TicTacToeState(AbstractState):
         if not isinstance(value, TicTacToeState):
             return False
         
-        return self.rows == value.rows
+        return self.rows == value.rows and self.current_player == value.current_player
 
     def __str__(self) -> str:
         s = ""
