@@ -3,23 +3,47 @@ from __future__ import annotations
 from abc import ABCMeta, abstractmethod
 from typing import Any, Collection
 
-class WinState:
-    pass
+class WinState(metaclass=ABCMeta):
+    @abstractmethod
+    def is_decided(self):
+        return False
+    
+    @abstractmethod
+    def is_undecided(self):
+        return False
+
+    @abstractmethod
+    def is_tie(self):
+        return False
+    
+    @abstractmethod
+    def is_win(self):
+        return False
 
 class Undecided(WinState):
+    def is_undecided(self):
+        return True
+    
     def __bool__(self):
         return False
     
 class Decided(WinState):
+    def is_decided(self):
+        return True
+        
     def __bool__(self):
         return True
 
 class Tie(Decided):
-    pass
+    def is_tie(self):
+        return True
 
 class Win(Decided):
     def __init__(self, winner):
         self.winner = winner
+
+    def is_win(self):
+        return True
 
 class AbstractState(metaclass=ABCMeta):
     @property
