@@ -166,7 +166,7 @@ class Node:
         # TODO limit to less than all possible moves
 
         # If the game is decided now, we cannot expand
-        if not isinstance(self.state.outcome, Undecided):
+        if self.state.outcome.is_decided:
             return
 
         # Try all the possible moves in this state (see TODO above)
@@ -180,11 +180,11 @@ class Node:
         Returns:
             The updated win counts of for the players at this node.
         """
-        if isinstance(self.state.outcome, Win):
+        if self.state.outcome.is_win:
             # Update win counts if someone has won
             self.scores[self.state.outcome.winner] += 1
             self.backpropagate()
-        elif isinstance(self.state.outcome, Tie):
+        elif self.state.outcome.is_tie:
             pass
             # TODO: partial points for tie?
         else:

@@ -2,7 +2,7 @@ from typing import Any, Collection
 from itertools import cycle
 from copy import deepcopy
 
-from .state import AbstractState, Win, Tie, Undecided
+from .state import AbstractState, Outcome, Win, Tie, Undecided
 
 class TicTacToeState(AbstractState):
     """Game states for Tic Tac Toe.
@@ -37,7 +37,7 @@ class TicTacToeState(AbstractState):
         raise NotImplementedError
 
     @property
-    def outcome(self) -> Any:
+    def outcome(self) -> Outcome:
         # Check for a win in the rows
         for row in self.rows:
             if all([sq == row[0] for sq in row]) and row[0] != ' ':
@@ -72,7 +72,7 @@ class TicTacToeState(AbstractState):
     def possible_moves(self) -> Collection[Any]:
         # Return no possible moves if the game is decided. Theoretically this
         # shouldn't be necessary.
-        if not isinstance(self.outcome, Undecided):
+        if self.outcome.is_decided:
             return list()
 
         # Any blank square is a move

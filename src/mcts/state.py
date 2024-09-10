@@ -3,9 +3,9 @@ from __future__ import annotations
 from abc import ABCMeta, abstractmethod
 from typing import Any, Collection
 
-class WinState(metaclass=ABCMeta):
+class Outcome(metaclass=ABCMeta):
     """
-    Represents the outcome of a game.
+    The outcome of a game.
      
     Namely whether there is a winner (and if so, who), a tie, or whether it is
     still undecided. An undecided game implies that further playout will decide
@@ -36,7 +36,7 @@ class WinState(metaclass=ABCMeta):
         """Returns True IFF the game ended with a winner."""
         return False
 
-class Undecided(WinState):
+class Undecided(Outcome):
     @property
     def is_undecided(self):
         return True
@@ -44,7 +44,7 @@ class Undecided(WinState):
     def __bool__(self):
         return False
     
-class Decided(WinState):
+class Decided(Outcome):
     @property
     def is_decided(self):
         return True
@@ -75,7 +75,7 @@ class AbstractState(metaclass=ABCMeta):
 
     @property
     @abstractmethod
-    def outcome(self) -> WinState:
+    def outcome(self) -> Outcome:
         """Return the outcome of the current state."""
 
     @property

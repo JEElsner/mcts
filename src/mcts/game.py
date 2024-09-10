@@ -36,7 +36,7 @@ class Game:
         """
 
         # Play until there is an outcome
-        while not self.state.outcome:
+        while self.state.outcome.is_undecided:
             player = self.state.current_player
             move = self.agents[player].make_move(self.state)
 
@@ -63,7 +63,7 @@ class Game:
             agent.see_state(self.state)
 
         # Print the outcome
-        if isinstance(self.state.outcome, Tie):
+        if self.state.outcome.is_tie:
             print("The game ends in a tie.")
         else:
             print(f"The winner is {self.state.outcome.winner}")
