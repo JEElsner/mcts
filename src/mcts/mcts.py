@@ -12,13 +12,6 @@ import warnings
 from .state import AbstractState, Win, Tie, Undecided, Decided
 from .agents import Agent
 
-class MockRng:
-    def randint(self, a, b):
-        return 0
-    
-    def choice(self, collection):
-        return collection[0]
-
 def default_score_function(node_wins, node_simulations, parent_simulations, exploration_parameter=math.sqrt(2)) -> float:
     """Score the value of the node for a player.
     
@@ -48,11 +41,22 @@ class MCTSAgent(Agent):
         curr_node: The node containing the current state of the game played.
     """
 
-    def __init__(self):
-        """Initialize the MCTS agent."""
+    def __init__(self, rng=None):
+        """Initialize the MCTS agent.
+        
+        Args:
+            rng:
+                The Random object to use. Can be substituted for a mock to make
+                MCTS deterministic.
+        """
 
         self.root:Node = None
         self.curr_node: Node = None
+
+        if rng is None:
+            rng = Random()
+
+        self.rng = rng
 
     def make_move(self, state: AbstractState):
         """Explore possible moves and pick the best one.
@@ -65,8 +69,8 @@ class MCTSAgent(Agent):
         """
 
         if self.curr_node is None:
-            self.curr_node = Node(state, rng=MockRng())
-        if self.curr_node.state != state:
+            self.curr_node = self.root = Node(state, rng=self.rng)
+        elif self.curr_node.state != state:
             warnings.warn("Current state of game does not match current state of MCT! Continuing with game state, but children may differ.")
             self.curr_node.state = state
 
@@ -83,7 +87,7 @@ class MCTSAgent(Agent):
         """
         # If the game has just started, set the root
         if self.curr_node is None:
-            self.root = Node(new_state, rng=MockRng())
+            self.root = Node(new_state, rng=self.rng)
             self.curr_node = self.root
             return
         else:

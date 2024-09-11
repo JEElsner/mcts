@@ -9,6 +9,13 @@ from copy import deepcopy
 from mcts.state import AbstractState, Outcome
 from mcts import state
 
+class MockRng:
+    def randint(self, a, b):
+        return 0
+    
+    def choice(self, collection):
+        return collection[0]
+
 class TestState(AbstractState):
     """A simple test game state.
 
