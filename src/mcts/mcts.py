@@ -64,6 +64,8 @@ class MCTSAgent(Agent):
             The chosen move to make from the possible moves at this game state.
         """
 
+        if self.curr_node is None:
+            self.curr_node = Node(state, rng=MockRng())
         if self.curr_node.state != state:
             warnings.warn("Current state of game does not match current state of MCT! Continuing with game state, but children may differ.")
             self.curr_node.state = state
@@ -106,7 +108,7 @@ class MCTSAgent(Agent):
         
 
 class Node:
-    def __init__(self, state: AbstractState, scores=None, children: Dict[Hashable, Node] = dict(), rng=None, score_fn=default_score_function, parent=None):
+    def __init__(self, state: AbstractState, scores=None, children: Dict[Hashable, Node] = None, rng=None, score_fn=default_score_function, parent=None):
         """Create a node for a Monte Carlo search tree.
         Args:
             state:
@@ -122,6 +124,9 @@ class Node:
             parent:
                 The parent node of this one.
         """
+        if children is None:
+            children = dict()
+
         if scores is None:
             scores = Counter()
 
@@ -191,7 +196,7 @@ class Node:
                 
         # Backpropagate wins from expanded node to self node
         for i, node in enumerate(chain[-2::-1]):
-            node.scores += expansion_chain[i+1].scores
+            node.scores += chain[i+1].scores
             
         # Return best move in current state
         return max(self.children.keys(), key=lambda k: self.children[k].scores[self.state.current_player])
@@ -290,4 +295,8 @@ class Node:
 
         # Choose the best move based on win counts
         return max(self.children.keys(), key=lambda k: self.children[k].scores[player])
+    
+    def __repr__(self):
+        # TODO this isn't a complete repr, but it's got all the necessary bits
+        return f"Node({self.state}, children={self.children}, scores={dict(self.scores)})"
 
